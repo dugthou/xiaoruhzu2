@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+    }
+    body{
+        padding: 20px;
+    }
+    .clearfix::after{
+        content: "";
+        display: block;
+        clear: both;
+    }
+    #container{
+        width: 640px;
+        height: 360px;
+        overflow: hidden;
+        position: relative;
+        margin: 0 auto;
+    }
+    #list{
+        /* 5张图片 * 640px每张图片的宽度 */
+        width: 3200px;
+        height: 360px;
+        position: absolute;
+        z-index: 1;
+    }
+    #list span{
+        float: left;
+        width: 640px;
+        height: 360px;
+    }
+    #list span img{
+        width: 100%;
+        height: 100%;
+    }
+    #pointsDiv{
+        position: absolute;
+        height: 15px;
+        width: 100px;
+        left: 280px;
+        bottom: 15px;
+        z-index: 2;
+    }
+    #pointsDiv span{
+        cursor: pointer;
+        float: left;
+        width: 15px;
+        height: 15px;
+        background-color: red;
+        margin: 0 7px;
+        /* 设置透明度 */
+        opacity: 0.5;
+        /* 兼容IE8及其以下 */
+        filter: alpha(opacity = 50);
+    }
+    #pointsDiv span:hover{
+        background-color: #000;
+    }
+    #pointsDiv .on{
+        background-color: #000;
+    }
+    .arrow{
+        cursor: pointer;
+        display: none;
+        line-height: 40px;
+        text-align: center;
+        font-size: 36px;
+        font-weight: bold;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        z-index: 2;
+        top: 180px;
+        background-color: rgba(0, 0, 0, .4);
+        color: #fff;
+        text-decoration: none;
+    }
+    #container:hover .arrow{
+        display: block;
+    }
+    .arrow:hover{
+        color: #008c8c;
+        background-color: rgba(0, 0, 0, .7);
+    }
+    #prev{
+        left: 20px;
+    }
+    #next{
+        right: 20px;
+    }
+</style>
+<body>
+    <div id="container">
+        <!-- style="left: -640px;"作用为设置7.jpg为第一张图片 -->
+        <div id="list" class="clearfix" style="left: -640px;">
+            <span><img src="./images/9.jpg" alt=""></span>
+
+            <span><img src="./images/7.jpg" alt=""></span>
+            <span><img src="./images/8.jpg" alt=""></span>
+            <span><img src="./images/9.jpg" alt=""></span>
+
+           <span><img src="./images/7.jpg" alt=""></span>
+        </div>
+        <div id="pointsDiv" class="clearfix">
+            <span index = "1" class="on"></span>
+            <span index = "2"></span>
+            <span index = "3"></span>
+        </div>
+        <a href="javascript:;" id="prev" class="arrow">←</a>
+        <a href="javascript:;" id="next" class="arrow">→</a>
+    </div>
+</body>
+<script src="https://libs.baidu.com/jquery/1.7.2/jquery.min.js"></script>
+<script>
+    $(function (){
+        var $container = $('#container');
+        var $list = $('#list');
+        var $points = $('#pointsDiv>span');
+        var $prev = $('#prev');
+        var $next = $('#next');
+        var PAGE_WIDTH = 640;  // 一页的宽度
+        var TIME = 400; // 翻页的持续时间
+        var ITEM_TIME = 20; // 单元移动的间隔时间
+        var imgCount = $points.length; // 图片数量
+        var index = 0; // 图片的当前下标
+        var moving = false; // 标识是否正在翻页，false为不在翻页
+
+        // 点击向左/右的图标，平滑切换到上/下一页
+        $next.click(function (){
+            // 平滑翻到下一页
+            nextPage(true);
+        });
+        $prev.click(function (){
+            // 平滑翻到上一页
+            nextPage(false);
+        });
+
+        // 平滑翻页
+        // true：上一页
+        // false：下一页
+        // 数值：指定下标页
+        function nextPage(next){
+            // 总的偏移量：offset
+            // 总的时间：TIME = 400
+            // 单元移动的间隔时间： ITEM_TIME = 20
+            // 单元移动的偏移量：itemOffset = offset / (TIME / ITEM_TIME)
+            // 启动循环定时器不断更新$list的left，到达目标停止定时器
+
+            // 如果正在翻页，直接结束
+            if(moving){ // 已经正在翻页中
+                return
+            }
+            moving = true; //标识正在翻页
+
+            // 计算：offset
+            var offset = 0;
+            if(typeof next === 'boolean'){
+                offset = next ? -PAGE_WIDTH : PAGE_WIDTH;
+            }else{
+                offset = -(next - index) * PAGE_WIDTH;
+            }
+
+            // 计算：itemOffset
+            var itemOffset = offset / (TIME / ITEM_TIME);
+
+            // 得到当前的left的值
+            var currLeft = $list.position().left;
+
+            // 计算出目标出的left值
+            var targetLeft = currLeft + offset;  
+
+            // 启动定时器
+            var intervalId = setInterval(function (){
+                // 计算最新的currLeft
+                currLeft += itemOffset;
+                if(currLeft === targetLeft){ // 到达目标处
+                    // 停止定时器
+                    clearInterval(intervalId);
+                    // 标识翻页停止
+                    moving = false;
+
+                    // 循环翻页
+                    // 如果到达了最右边的图片（7.jpg），跳转到最左边的第2张图片（7.jpg）
+                    if(currLeft === -(imgCount + 1) * PAGE_WIDTH){
+                        currLeft = -PAGE_WIDTH;
+                    }else if(currLeft === 0){
+                        // 如果到达了最左边的图片（9.jpg），跳转到最右边的第2张图片（9.jpg）
+                        currLeft = -imgCount * PAGE_WIDTH;
+                    }
+                }
+                // 设置left
+                $list.css('left', currLeft);
+            },ITEM_TIME);
+
+            // 更新图片下标
+            updatePoints(next);
+        }
+
+        // 更新图片下标
+        function updatePoints(next){
+            // 计算出目标图片下标targetIndex
+            var targetIndex = 0;
+            if(typeof next === 'boolean'){
+                if(next){ // 下一张
+                    // targetIndex的范围是：[0,imgCount - 1]
+                    targetIndex = index + 1;
+                    if(targetIndex == imgCount){ // 此时看到的是7.jpg --> 第一个下标
+                        targetIndex = 0;
+                    }
+                }else{ // 上一张
+                    targetIndex = index - 1;
+                    if(targetIndex == -1){ // 此时看到的是9.jpg --> 第三个下标
+                        targetIndex = imgCount - 1;
+                    }
+                }
+            }else{
+                targetIndex = next;
+            }
+
+            // 将当前index的<span>的class移除
+            // $points.eq(index).removeClass('on');
+            $points[index].className = '';
+
+            // 给目标图片下标添加class = 'on'
+            // $points.eq(targetIndex).addClass('on');
+            $points[targetIndex].className = 'on';
+
+            // 将index更新为targetIndex
+            index = targetIndex;
+        }
+
+        // 点击下标切换到相应的图片
+        $points.click(function (){
+            // 目标页的下标
+            var targetIndex = $(this).index();
+            // 只有当点击的不是当前页时才翻页
+            if(targetIndex != index){
+                nextPage(targetIndex);
+            }
+        });
+
+        // 每隔3s自动翻到下一页
+        var intervalIdAuto = setInterval(function (){
+            nextPage(true);
+        },3000); 
+
+        // 当鼠标进入图片区域时，停止自动切换，鼠标离开时继续自动切换
+        $container.hover(function (){
+            // 清楚自动切换的定时器
+            clearInterval(intervalIdAuto);
+        },function (){
+            // 启动自动切换定时器
+            intervalIdAuto = setInterval(function (){
+                nextPage(true);
+            },3000);
+        });
+
+    });
+</script>
+</html>

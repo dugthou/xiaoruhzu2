@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>js精度运算错误</title>
+	</head>
+	<body>
+		
+	</body>
+	<script type="text/jscript">
+		// 加法
+		function jsDoubleAdd(num1,num2){
+		                  let r1,r2,m;
+		                  try{r1 = num1.toString().split(".")[1].length; }catch{  r1 = 0;    }
+		                  try{   r2 = num2.toString().split(".")[1].length   }catch{  r2 = 0;   }
+		                  m = Math.pow(10,Math.max(r1,r2));
+		                   let  n = (r1>=r2) ? r1 : r2;
+		                  return ((num1*m+num2*m)/m).toFixed(n);
+		              }
+		// 减法
+		 jsDoubleRedu(num1,num2){
+		                  let r1,r2,m;
+		                  try{ r1 = num1.toString().split(".")[1].length;  }catch{  r1 = 0; }
+		                  try{ r2 = num2.toString().split(".")[1].length  }catch{  r2 = 0;}
+		                  m = Math.pow(10,Math.max(r1,r2));
+		                 let  n = (r1>=r2) ? r1 : r2;
+		                  return ((num1*m-num2*m)/m).toFixed(n);
+		              }
+					  
+					  // 乘法
+		function jsMul(num1,num2){
+			var m = 0 , s1 = num1.toString(), s2 = num2.toString();
+			try{ m += s1.split(".")[1].length}catch(e){};
+			try{ m += s2.split(".")[1].length}catch(e){};
+			    
+				return Number(s1.replace(".","")) * Number(s2.replace(".","")) / Math.pow(10,m);
+		}
+		// 除法
+		function jsDiv(num1,num2){
+				var s1,s2 ,t1 = num1.toString(), t2 = num2.toString();
+				try{ s1 = t1.split(".")[1].length}catch(e){ s1 = 0;};
+				try{ s2 = t2.split(".")[1].length}catch(e){ s2 = 0;};
+					return Number(t1.replace(".","")) / Number(t2.replace(".","")) * Math.pow(10,s2 - s1); 
+		}
+		let b =	jsDiv(9.8,1.2);
+		console.log(b);
+	</script>
+</html>
